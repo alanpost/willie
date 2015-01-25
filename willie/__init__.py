@@ -34,12 +34,12 @@ def run(config):
     # Inject ca_certs from config to web for SSL validation of web requests
     web.ca_certs = '/etc/pki/tls/certs/ca-bundle.crt'
     if hasattr(config, 'ca_certs') and config.ca_certs is not None:
-        web.ca_certs = config.ca_certs
-    elif not os.path.isfile(web.ca_certs):
+        web.ca_certs = os.path.expanduser(config.ca_certs)
+    if not os.path.isfile(web.ca_certs):
         web.ca_certs = '/etc/ssl/certs/ca-certificates.crt'
     if not os.path.isfile(web.ca_certs):
-        stderr('Could not open CA certificates file. SSL will not '
-               'work properly.')
+        stderr('Could not open CA certificates file %s. SSL will not '
+               'work properly.' % ca_certs)
 
     def signal_handler(sig, frame):
         if sig == signal.SIGUSR1 or sig == signal.SIGTERM:

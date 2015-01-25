@@ -170,11 +170,13 @@ class VerifiedHTTPSConnection(httplib.HTTPConnection):
             if self._tunnel_host:
                 self.sock = sock
                 self._tunnel()
-            if not os.path.exists(ca_certs):
-                raise Exception('CA Certificate bundle %s is not readable' % ca_certs)
+            if not os.path.exists(self.ca_certs):
+                raise Exception('CA Certificate bundle %s is not readable' % self.ca_certs)
             self.sock = ssl.wrap_socket(sock,
-                                        ca_certs=ca_certs,
-                                        cert_reqs=ssl.CERT_REQUIRED)
+                                        cert_reqs=ssl.CERT_REQUIRED,
+                                        ca_certs=self.ca_certs,
+                                        certfile=self.certfile,
+                                        ssl_version=ssl.PROTOCOL_TLSv1)
             ssl.match_hostname(self.sock.getpeercert(), self.host)
 
 

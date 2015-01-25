@@ -53,12 +53,16 @@ class Bot(asynchat.async_chat):
     def __init__(self, config):
         ca_certs = '/etc/pki/tls/cert.pem'
         if config.ca_certs is not None:
-            ca_certs = config.ca_certs
-        elif not os.path.isfile(ca_certs):
+            ca_certs = os.path.expanduser(config.ca_certs)
+        if not os.path.isfile(ca_certs):
             ca_certs = '/etc/ssl/certs/ca-certificates.crt'
         if not os.path.isfile(ca_certs):
-            stderr('Could not open CA certificates file. SSL will not '
-                   'work properly.')
+            stderr('Could not open CA certificates file %s. SSL will not '
+                   'work properly.' % ca_certs)
+
+        certfile = None
+        if config.certfile is not None:
+            certfile = os.path.expanduser(config.certfile)
 
         if config.log_raw is None:
             # Default is to log raw data, can be disabled in config
@@ -80,6 +84,7 @@ class Bot(asynchat.async_chat):
 
         self.stack = {}
         self.ca_certs = ca_certs
+        self.certfile = certfile
         self.hasquit = False
 
         self.sending = threading.RLock()
@@ -209,10 +214,7 @@ class Bot(asynchat.async_chat):
                           if self.config.core.bind_host else None)
         self.set_socket(socket.create_connection((host, port),
                         source_address=source_address))
-        if self.config.core.use_ssl and has_ssl:
-            self.send = self._ssl_send
-            self.recv = self._ssl_recv
-        elif not has_ssl and self.config.core.use_ssl:
+        if not has_ssl and self.config.core.use_ssl:
             stderr('SSL is not avilable on your system, attempting connection '
                    'without it')
         self.connect((host, port))
@@ -265,22 +267,23 @@ class Bot(asynchat.async_chat):
     def handle_connect(self):
         if self.config.core.use_ssl and has_ssl:
             if not self.config.core.verify_ssl:
-                self.ssl = ssl.wrap_socket(self.socket,
-                                           do_handshake_on_connect=True,
-                                           suppress_ragged_eofs=True)
+                self.socket = ssl.wrap_socket(self.socket,
+                                              do_handshake_on_connect=True,
+                                               suppress_ragged_eofs=True)
             else:
-                self.ssl = ssl.wrap_socket(self.socket,
-                                           do_handshake_on_connect=True,
-                                           suppress_ragged_eofs=True,
-                                           cert_reqs=ssl.CERT_REQUIRED,
-                                           ca_certs=self.ca_certs)
+                self.socket = ssl.wrap_socket(self.socket,
+                                              do_handshake_on_connect=True,
+                                              suppress_ragged_eofs=True,
+                                              cert_reqs=ssl.CERT_REQUIRED,
+                                              ca_certs=self.ca_certs,
+                                              certfile=self.certfile,
+                                              ssl_version=ssl.PROTOCOL_TLSv1)
                 try:
-                    ssl.match_hostname(self.ssl.getpeercert(), self.config.host)
+                    ssl.match_hostname(self.socket.getpeercert(), self.config.host)
                 except ssl.CertificateError:
                     stderr("Invalid certficate, hostname mismatch!")
                     os.unlink(self.config.pid_file_path)
                     os._exit(1)
-            self.set_socket(self.ssl)
 
         # Request list of server capabilities. IRCv3 servers will respond with
         # CAP * LS (which we handle in coretasks). v2 servers will respond with
@@ -316,41 +319,6 @@ class Bot(asynchat.async_chat):
                 except socket.error:
                     pass
             time.sleep(int(self.config.timeout) / 2)
-
-    def _ssl_send(self, data):
-        """Replacement for self.send() during SSL connections."""
-        try:
-            result = self.socket.send(data)
-            return result
-        except ssl.SSLError as why:
-            if why[0] in (asyncore.EWOULDBLOCK, errno.ESRCH):
-                return 0
-            else:
-                raise why
-            return 0
-
-    def _ssl_recv(self, buffer_size):
-        """Replacement for self.recv() during SSL connections.
-
-        From: http://evanfosmark.com/2010/09/ssl-support-in-asynchatasync_chat
-
-        """
-        try:
-            data = self.socket.read(buffer_size)
-            if not data:
-                self.handle_close()
-                return ''
-            return data
-        except ssl.SSLError as why:
-            if why[0] in (asyncore.ECONNRESET, asyncore.ENOTCONN,
-                          asyncore.ESHUTDOWN):
-                self.handle_close()
-                return ''
-            elif why[0] == errno.ENOENT:
-                # Required in order to keep it non-blocking
-                return ''
-            else:
-                raise
 
     def collect_incoming_data(self, data):
         # We can't trust clients to pass valid unicode.
