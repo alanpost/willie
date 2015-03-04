@@ -1,5 +1,23 @@
-Changes between 4.6.2 and 5.0.0 (as of 2014-01-12)
-==================================================
+Changes between 5.0.0 and 5.1.1
+===============================
+Module changes (for users):
+* Fixed a regression that caused getting weather for a nick to fail
+* Bugs related to channel log filenames are fixed
+* Channel logs can now use the bot's preferred time zone
+* Getter and setter methods for timezone and format are more consistently named
+* .seen persists across bot restarts
+* .seen no longer shows message or channel unless used within the same channel
+* Special characters in Wikipedia URLs are handled correctly
+
+Core changes (for users):
+* help_prefix can now be given in [core] to change the command prefix used in help
+
+API changes (for developers):
+* The Trigger object is now immutable, as expected
+* New decorators for checking privileges on callables are added
+
+Changes between 4.6.2 and 5.0.0
+===============================
 This release contains backwards-incompatible changes. See
 http://willie.dftba.net/willie_5.html for more information.
 
@@ -11,6 +29,7 @@ Core changes (for users):
 * WillieDB is entirely rewritten, meaning migration will be needed to access old data
 * Logging output to the debug channel is improved
 * The name of the NickServ user can be configured with nickserv_name in [core]
+* SSL is disabled on Python 2.7 when backports.ssl_match_hostname is not installed
 
 API changes (for developers):
 * Deprecated WillieDB functions are removed

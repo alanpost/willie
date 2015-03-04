@@ -1,5 +1,7 @@
-Introduction |build-status|
----------------------------------------------
+|status| |version| |downloads| |license| |issues| |forks| |stars| |ages| |works| |badges|
+
+Introduction
+------------
 
 Willie is a simple, lightweight, open source, easy-to-use IRC Utility bot,
 written in Python. It's designed to be easy to use, run and extend.
@@ -57,11 +59,24 @@ information including a full listing of
 Questions?
 ----------
 
-Contact us on irc.dftba.net channel #tech
+Join us in `#willie <irc://irc.freenode.net/#willie>`_ on Freenode.
 
-For a list of contributions to the Jenni fork see the file ``CREDITS``.
-
-.. |build-status| image:: https://travis-ci.org/embolalia/willie.svg
+.. |status| image:: https://travis-ci.org/embolalia/willie.svg
    :target: https://travis-ci.org/embolalia/willie
 .. |coverage-status| image:: https://coveralls.io/repos/embolalia/willie/badge.png
    :target: https://coveralls.io/r/embolalia/willie
+.. |version| image:: https://img.shields.io/pypi/v/willie.svg
+   :target: https://pypi.python.org/pypi/willie/5.0.0
+.. |downloads| image:: https://img.shields.io/pypi/dm/willie.svg
+   :target: https://pypi.python.org/pypi/willie/5.0.0
+.. |license| image:: https://img.shields.io/pypi/l/willie.svg
+   :target: https://github.com/embolalia/willie/blob/master/COPYING
+.. |issues| image:: https://img.shields.io/github/issues/embolalia/willie.svg
+   :target: https://github.com/embolalia/willie/issues
+.. |forks| image:: https://img.shields.io/github/forks/embolalia/willie.svg
+   :target: https://github.com/embolalia/willie/network
+.. |stars| image:: https://img.shields.io/github/stars/embolalia/willie.svg
+   :target: https://github.com/embolalia/willie/stargazers
+.. |ages| image:: https://img.shields.io/badge/ages-12%2B-green.svg
+.. |works| image:: https://img.shields.io/badge/works-usually-yellow.svg
+.. |badges| image:: https://img.shields.io/badge/badges-10-green.svg
